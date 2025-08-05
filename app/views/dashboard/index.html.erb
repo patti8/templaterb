@@ -1,0 +1,7 @@
+<div style="text-align: center; padding: 40px;">
+  <h1>Selamat Datang di Dashboard!</h1>
+  <p>Anda berhasil login.</p>
+  <p>Email Anda: <strong><%= current_user.email %></strong></p>
+  <br>
+  <%= button_to "Logout", destroy_user_session_path, method: :delete, style: "padding: 10px 20px; border: none; background-color: #dc3545; color: white; border-radius: 5px; cursor: pointer;" %>
+</div>
