@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   get 'ai_interactions/chat', to: 'ai_interactions#chat', as: :ai_chat
   post 'ai_interactions/project/:project_id', to: 'ai_interactions#create_chat_by_project', as: :ai_chat_project
   get 'ai_interactions/project/:project_id', to: 'ai_interactions#chat_by_project', as: :ai_chat_by_project
-
+  get 'ai_interactions/project/:project_id/templaterb', to: 'ai_interactions#file_templaterb' #, as: :ai_chat_by_project
 
   get 'ai_interactions/chat_history', to: 'ai_interactions#chat_history', as: :ai_chat_history
 

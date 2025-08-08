@@ -6,46 +6,48 @@
       end
 
 
-      url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=#{api_key}"
+      url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=#{api_key}"
 
-      system_prompt_instructions = <<-PROMPT
-      You are a smart AI agent that acts as a full-stack software architect and Ruby on Rails engineer.
+      system_prompt_instructions = <<~PROMPT
+        You are a smart AI agent that acts as a full-stack software architect and Ruby on Rails engineer.
 
-      You will receive user requirements or requests in natural language. Your task is to understand the intent and generate a working **Rails Application Template** (`.rb` file) that can be used with `rails new myapp -m template.rb`.
+        You will receive user requirements in natural language. Your task is to analyze the request and return a valid **JSON response** that describes the structure of a Rails Application Template.
 
-      The generated template should:
-      - rails version for 8.0.2
-      - Include all required Rails gems and configurations
-      - Include commands such as `gem`, `after_bundle`, `generate`, etc.
-      - Be modular and flexible for future extensions
-      - Work for both simple and complex use cases (e.g., blog app, e-commerce with Stripe integration, admin dashboard with authentication)
-      - Avoid including static content (like README or views) unless asked
+        ### Output Format (MUST BE VALID JSON):
+        Always respond using this format:
 
-      ### Instructions:
-      1. Analyze the user's natural language request.
-      2. Determine the type of app and required gems.
-      3. Generate a valid `.rb` Rails application template that implements those needs.
-      4. Include comments in the template to clarify what's being done in each section.
-      5. Use best practices for gem usage and template structure.
+        {
+          "parts": [
+            {
+              "type": "text",
+              "content": "Explanation of what the template does and key points."
+            },
+            {
+              "type": "code",
+              "content": "```ruby\\n# template.rb\\nRAILS_VERSION = \\\"8.0.2\\\"\\n...\\n```"
+            }
+          ]
+        }
 
-      ### Additional Rules:
-      - Always use `after_bundle` to run setup tasks (e.g., `generate`, `rails db:create`, `git init`, etc.)
-      - Use popular libraries for authentication (like Devise), payments (like Stripe), admin dashboards (like Administrate), etc.
-      - The template must be executable via `rails new myapp -m template.rb` without error or `rails app:template ./template.rb`
+        ### Rules:
+        - Only respond with a valid JSON object. Do not include any additional explanation or commentary outside of the JSON.
+        - Use `type: "code"` for Ruby templates or any code blocks.
+        - Use `type: "text"` for summaries, explanations, or instructions.
+        - Use `type: "docs"` only if generating documentation or multi-file content like README, LICENSE, etc.
+        - Inside code blocks, use escaped newlines (\\n) if needed to maintain valid JSON.
+        - You MUST include the Rails version `8.0.2` in the template.
+        - The generated code should follow best practices for a Rails Application Template (.rb) and use `after_bundle` for setup steps.
+        - It must work when used with: `rails new myapp -m template.rb` or `rails app:template LOCATION`.
 
-      ---
+        ### Examples of User Requests You Will Receive:
+        - “I want a simple blog app with posts and comments.”
+        - “A Rails app with Devise authentication and Stripe payments.”
+        - “A school management app with admin dashboard and CSV import.”
+        - “API-only app with JWT and PostgreSQL.”
 
-      #### 🧠 EXAMPLE REQUESTS THE USER MIGHT ASK:
-
-      - “I want a simple blog app with posts and comments.”
-      - “I need a Rails app with authentication and Stripe payments.”
-      - “Buat aplikasi manajemen sekolah dengan admin dashboard dan import CSV untuk siswa.”
-      - “I need an app with API-only mode, JWT auth, and PostgreSQL.”
-
-      ---
-
-      Now, wait for user input and generate the Rails Application Template `.rb` file based on it.
+        Now, wait for user input. When a request comes in, return a valid JSON response as defined above.
       PROMPT
+
 
       # Struktur body yang benar untuk Gemini API
       payload = {
@@ -83,94 +85,95 @@
         ]
       }
 
-      response = HTTParty.post(
+      response = gemini_client(url, payload)
+
+      if response.success?
+        result = JSON.parse(response.body)
+        ai_response = result["candidates"][0]["content"]["parts"][0]["text"]
+
+        template_code = ai_response
+        cleaned = template_code.gsub(/```(\w+)?\n?/, '').strip
+        json = JSON.parse(cleaned)
+
+        type =  json["parts"][1]["type"]
+
+
+        # from User
+        save_to_message(
+            project_id,
+            ai_response,
+            "user"
+        )
+
+
+        if type == "code"
+
+          # from AI
+          save_to_message(
+            project_id,
+            ai_response,
+            "ai",
+            "code"
+           )
+
+          # Struktur body yang benar untuk Gemini API
+          payload[:contents] <<  {
+                role: "user",
+                parts: [
+                  {
+                    text: "buat dokumentasi untuk code ini: #{ json["parts"][1]["content"]}"
+                  }
+                ]
+          }
+
+          response_for_docs = gemini_client(url, payload)
+          response_docs = JSON.parse(response_for_docs.body)
+          ai_response_docs = response_docs["candidates"][0]["content"]["parts"][0]["text"]
+
+          # from AI for documentations
+          save_to_message(
+            project_id,
+            ai_response,
+            "ai",
+            "docs"
+           )
+        else
+           # from AI
+           save_to_message(
+            project_id,
+            ai_response,
+            "ai",
+            nil
+           )
+        end
+
+
+        { response: json["parts"][0]["content"] }
+      else
+        { error: "Failed to connect to Gemini AI: #{response.message}" }
+      end
+    end
+
+
+    def self.gemini_client(url, payload)
+      HTTParty.post(
         url,
         headers: {
           'Content-Type' => 'application/json'
         },
         body: payload.to_json
       )
+    end
 
-
-
-      if response.success?
-        result = JSON.parse(response.body)
-        ai_response = result["candidates"][0]["content"]["parts"][0]["text"]
-
-        # from User
-        Message.create!(
+    def self.save_to_message(project_id, message, role, type_message=nil)
+        # Create a new message record
+        Message.create(
           project_id: project_id,
           content: message,
-          role: "user"
+          role: role,
+          type_message: type_message # Assuming 'type' is the enum defined in the Message model
         )
-
-        # from AI
-        Message.create!(
-          project_id: project_id,
-          content: ai_response,
-          role: "ai"
-        )
-        template_code = ai_response
-        debugger
-        { response: ai_response }
-      else
-        { error: "Failed to connect to Gemini AI: #{response.message}" }
-      end
     end
-
-    # def self.valid_template?(template_code)
-    #   # 1. Ekstrak kode di antara tanda pagar Markdown
-    #   #    Regex ini mencari konten di antara ```ruby dan ```
-    #   cleaned_code = template_code.match(/```ruby\n(.*)\n```/m)
-
-    #   # 2. Pastikan ada yang cocok, lalu validasi
-    #   if cleaned_code && cleaned_code[1]
-    #     template_code = cleaned_code[1]
-    #     puts "Kode yang sudah dibersihkan:\n---\n#{template_code}\n---"
-
-    #     # Sekarang validasi kode yang sudah bersih
-    #     puts "Hasil validasi: #{valid_template?(template_code)}" # Seharusnya sekarang true
-    #   else
-    #     puts "Tidak dapat menemukan kode Ruby di dalam string."
-    #   end
-
-    #   # 1. Pemeriksaan Sintaks
-    #   # Ripper.sexp akan mengembalikan nil jika ada syntax error.
-    #   return false if Ripper.sexp(cleaned_code).nil?
-
-    #   # 2. Pemeriksaan Kata Kunci Esensial (Opsional tapi direkomendasikan)
-    #   # Memastikan template berisi perintah-perintah umum.
-    #   required_keywords = ['gem', 'generate', 'rails_command', 'after_bundle']
-
-    #   # Memeriksa apakah setidaknya salah satu kata kunci ada.
-    #   # Anda bisa mengubah ini menjadi .all? jika semua kata kunci wajib ada.
-    #   return required_keywords.any? { |keyword| template_code.include?(keyword) }
-
-    # rescue
-    #   # Menangani error tak terduga selama validasi
-    #   return false
-    # end
-
-    def self.valid_template_v2?(template_code)
-      # Pastikan text selalu terisi
-      text = template_code.include?("\\n") ? template_code.gsub("\\n", "\n") : template_code
-
-      # Cocokkan dengan blok kode Ruby tanpa teks tambahan
-      ruby_block = /\A```ruby\s*\n(.+?)\n```$/m
-      match = text.match(ruby_block)
-      return false unless match
-
-      content = match[1]
-
-      # Keyword penting sebagai validasi isi (bisa disesuaikan)
-      required_keywords = [
-        "RAILS_VERSION", "gem", "after_bundle do", "generate", "rails_command", "route", "git"
-      ]
-
-      required_keywords.all? { |kw| content.include?(kw) }
-    end
-
-
 
 
   end

@@ -1,250 +1,191 @@
 
-<%= render "css"%>
+
 <script>
-const generateBtn = document.getElementById('generate-btn');
-const aiPromptInput = document.getElementById('ai-prompt');
-const codeEditor = document.getElementById('code-editor');
-const explanationContent = document.getElementById('explanation-content');
-const loadingIndicator = document.getElementById('loading-indicator');
-const errorMessage = document.getElementById('error-message');
-const livePreviewBody = document.getElementById('live-preview-body');
-const chatHistory = document.getElementById('chat-history');
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
 
-const initialCode = `# template.rb
-# A basic Rails application template
+    const generateBtn = document.getElementById('generate-btn');
+    const aiPromptInput = document.getElementById('ai-prompt');
+    const codeEditor = document.getElementById('code-editor');
+    const explanationContent = document.getElementById('explanation-content');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const errorMessage = document.getElementById('error-message');
+    const livePreviewBody = document.getElementById('live-preview-body');
+    const chatHistory = document.getElementById('chat-history');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-# 1. Add essential gems
-gem 'pundit'
-gem 'friendly_id'
-gem 'sidekiq'
+    const initialCode = `null`;
 
-gem_group :development, :test do
-gem 'rspec-rails'
-gem 'factory_bot_rails'
-gem 'faker'
-end
+    const initialPreview = `<div class="h-full flex flex-col items-center justify-center text-center text-slate-500">
+        <i class="fas fa-rocket text-5xl mb-4 text-slate-300"></i>
+        <h2 class="text-xl font-bold text-slate-700">Aplikasi Anda Belum Dibuat</h2>
+        <p>Gunakan chat di sebelah kiri untuk mulai membuat template Anda.</p>
+    </div>`;
 
-# 2. Run bundle install
-after_bundle do
-# 3. Setup database
-rails_command "db:create"
-rails_command "db:migrate"
+    function addChatMessage(sender, messageHtml) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message', sender);
 
-# 4. Initialize git
-git :init
-git add: "."
-git commit: "-m 'Initial commit with basic template'"
+        if (sender === 'User') {
+            messageDiv.textContent = messageHtml;
+        } else {
+            messageDiv.innerHTML = `<div class="prose prose-slate max-w-none text-slate-700">${messageHtml}</div>`;
+        }
 
-puts "Template applied successfully!"
-end
-`;
-
-const initialPreview = `<div class="h-full flex flex-col items-center justify-center text-center text-slate-500">
-    <i class="fas fa-rocket text-5xl mb-4 text-slate-300"></i>
-    <h2 class="text-xl font-bold text-slate-700">Aplikasi Anda Belum Dibuat</h2>
-    <p>Gunakan chat di sebelah kiri untuk mulai membuat template Anda.</p>
-</div>`;
-
-function addChatMessage(sender, messageHtml) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('chat-message', sender);
-
-    if (sender === 'User') {
-        messageDiv.textContent = messageHtml;
-    } else {
-        messageDiv.innerHTML = `<div class="prose prose-slate max-w-none text-slate-700">${messageHtml}</div>`;
+        chatHistory.appendChild(messageDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 
-    chatHistory.appendChild(messageDiv);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-}
-
-async function fetchChatData(projectId) {
-    try {
-        const response = await fetch(`/ai_interactions/project/${projectId}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    async function fetchChatData(projectId) {
+        try {
+            const response = await fetch(`/ai_interactions/project/${projectId}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const chatData = await response.json();
+            chatData.forEach(message => {
+                addChatMessage(message.role, message.content); // Adjust based on your data structure
+            });
+        } catch (error) {
+            console.error('Error fetching chat data:', error);
+            showError("Failed to load chat data.");
         }
-        const chatData = await response.json();
-        chatData.forEach(message => {
-            addChatMessage(message.role, message.content); // Adjust based on your data structure
+    }
+
+    function initializeApp() {
+        codeEditor.textContent = initialCode;
+        livePreviewBody.innerHTML = initialPreview;
+
+        const initialExplanation = `<h3>Selamat Datang di RailsGen AI!</h3>
+            <p>Ini adalah prototipe untuk generator template aplikasi Rails. Gunakan kotak chat di bawah untuk memberi perintah kepada AI.</p> <p>Coba minta untuk <strong>"tambahkan autentikasi devise"</strong> atau <strong>"install tailwindcss"</strong>.</p>`;
+
+        explanationContent.innerHTML = initialExplanation;
+        fetchChatData(1);
+
+        // check templaterb
+    }
+
+    initializeApp();
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            tabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tabName}-panel`).classList.remove('hidden');
         });
-    } catch (error) {
-        console.error('Error fetching chat data:', error);
-        showError("Failed to load chat data.");
-    }
-}
-
-function initializeApp() {
-    codeEditor.textContent = initialCode;
-    livePreviewBody.innerHTML = initialPreview;
-
-    const initialExplanation = `<h3>Selamat Datang di RailsGen AI!</h3>
-<p>Ini adalah prototipe untuk generator template aplikasi Rails. Gunakan kotak chat di bawah untuk memberi perintah kepada AI.</p>
-<p>Coba minta untuk <strong>"tambahkan autentikasi devise"</strong> atau <strong>"install tailwindcss"</strong>.</p>`;
-    explanationContent.innerHTML = initialExplanation;
-
-
-    // addChatMessage('ai', 'Halo! Saya RailsGen AI. Apa yang ingin Anda buat hari ini?');
-    fetchChatData(1);
-
-}
-
-initializeApp();
-
-tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const tabName = button.dataset.tab;
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        tabContents.forEach(content => content.classList.add('hidden'));
-        document.getElementById(`${tabName}-panel`).classList.remove('hidden');
     });
-});
 
-generateBtn.addEventListener('click', () => {
-    const userPrompt = aiPromptInput.value.trim();
-    if (!userPrompt) {
-        showError("Prompt tidak boleh kosong.");
-        return;
-    }
-    addChatMessage('user', userPrompt);
-    aiPromptInput.value = '';
+    async function getTemplateRb() {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Assuming you have a way to get the current project ID
-    const currentProjectId = 1; // Replace with the actual project ID as needed
-    generateWithAI(currentProjectId, userPrompt);
-});
+            const response = await fetch('/ai_interactions/project/1/templaterb', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken, // Include the CSRF token
+                },
+            });
 
-aiPromptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') generateBtn.click(); });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
 
-async function generateWithAI(projectId, prompt) {
-    showLoading(true);
-    hideError();
+            const code_template = await response.json();
 
-    const currentCode = codeEditor.textContent;
+            codeEditor.textContent = code_template.response;
 
-    // Get the CSRF token from the meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-
-    try {
-        const response = await fetch(`/ai_interactions/project/${projectId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken, // Include the CSRF token
-            },
-            body: JSON.stringify({ message: prompt, code: currentCode }), // Send prompt and current code
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        } catch (error) {
+            console.log("gettemplate: ", error)
         }
 
-        const mockResponse = await response.json();
-
-        debugger
-
-        let explanationHtml = mockResponse.explanation
-            .replace(/### (.*)/g, '<h3>$1</h3>')
-            .replace(/\* (.*)/g, '<li>$1</li>')
-            .replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        if (explanationHtml.includes('<li>')) {
-            explanationHtml = '<ul>' + explanationHtml.match(/<li>.*/g).join('') + '</ul>';
-        }
-
-        codeEditor.textContent = mockResponse.code;
-        explanationContent.innerHTML = explanationHtml;
-        livePreviewBody.innerHTML = mockResponse.previewHtml;
-        addChatMessage('ai', explanationHtml);
-
-    } catch (error) {
-        console.error("Error with AI generation:", error);
-        const errorText = "Maaf, terjadi kesalahan saat berkomunikasi dengan AI. Silakan coba lagi.";
-        showError(errorText);
-        addChatMessage('ai', errorText);
-    } finally {
-        showLoading(false);
     }
-}
 
-function showLoading(isLoading) {
-    loadingIndicator.style.display = isLoading ? 'flex' : 'none';
-    generateBtn.disabled = isLoading;
-    generateBtn.style.opacity = isLoading ? '0.5' : '1';
-}
+    getTemplateRb();
 
-function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-}
 
-function hideError() {
-    errorMessage.style.display = 'none';
-}
+    generateBtn.addEventListener('click', () => {
+        const userPrompt = aiPromptInput.value.trim();
+        if (!userPrompt) {
+            showError("Prompt tidak boleh kosong.");
+            return;
+        }
+        addChatMessage('user', userPrompt);
+        aiPromptInput.value = '';
 
-async function mockGeminiAPI(prompt, currentCode) {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            let newCode = currentCode;
-            let explanation = "";
-            let previewHtml = initialPreview;
-
-            const hasDevise = prompt.toLowerCase().includes("devise");
-            const hasTailwind = prompt.toLowerCase().includes("tailwind");
-
-            if (hasDevise) {
-                newCode = newCode.replace("# 1. Add essential gems", "# 1. Add essential gems\ngem 'devise'");
-                newCode = newCode.replace("after_bundle do", "after_bundle do\n    generate 'devise:install'\n    generate 'devise', 'User'");
-                explanation += `### Menambahkan Devise
-* Menambahkan \`gem 'devise'\` ke Gemfile.
-* Menjalankan generator \`devise:install\` dan membuat model \`User\`.
-* Anda sekarang memiliki sistem autentikasi dasar.`;
-                previewHtml = `<div class="max-w-sm mx-auto">
-                    <h2 class="text-2xl font-bold text-center text-slate-800 mb-4">Log in</h2>
-                    <form class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Email</label>
-                            <input type="email" class="w-full mt-1 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[var(--rails-red)] focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600">Password</label>
-                            <input type="password" class="w-full mt-1 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-[var(--rails-red)] focus:outline-none">
-                        </div>
-                        <button type="button" class="w-full btn-primary py-2">Log in</button>
-                    </form>
-                </div>`;
-            }
-
-            if (hasTailwind) {
-                newCode = newCode.replace("# 1. Add essential gems", "# 1. Add essential gems\ngem 'tailwindcss-rails'");
-                newCode = newCode.replace("after_bundle do", "after_bundle do\n    rails_command 'tailwindcss:install'");
-                 explanation += `\n\n### Menambahkan Tailwind CSS
-* Menambahkan \`gem 'tailwindcss-rails'\`.
-* Menjalankan \`tailwindcss:install\` untuk setup.
-* Pratinjau sekarang menggunakan beberapa gaya dasar Tailwind.`;
-
-                if (!hasDevise) {
-                     previewHtml = `<div class="text-center">
-                        <h1 class="text-4xl font-bold text-slate-800 mb-2">Selamat Datang!</h1>
-                        <p class="text-lg text-slate-600">Aplikasi Rails Anda dengan Tailwind CSS.</p>
-                        <button type="button" class="mt-4 btn-primary px-6 py-2">Mulai</button>
-                    </div>`;
-                }
-            }
-
-            if (!hasDevise && !hasTailwind) {
-                explanation = `### Permintaan Tidak Dikenali (Mode Demo)
-* Ini adalah respons demo. Dalam aplikasi nyata, AI akan mencoba memahami permintaan Anda: "${prompt}".
-* Coba minta untuk menambahkan **"devise"** atau **"tailwind"** atau keduanya.`;
-            }
-
-            resolve({ code: newCode, explanation: explanation.trim(), previewHtml: previewHtml });
-        }, 1500);
+        // Assuming you have a way to get the current project ID
+        const currentProjectId = 1; // Replace with the actual project ID as needed
+        generateWithAI(currentProjectId, userPrompt);
     });
-}
+
+    aiPromptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') generateBtn.click(); });
+
+    async function generateWithAI(projectId, prompt) {
+        showLoading(true);
+        hideError();
+
+        const currentCode = codeEditor.textContent;
+
+        // Get the CSRF token from the meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+
+        try {
+            const response = await fetch(`/ai_interactions/project/${projectId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken, // Include the CSRF token
+                },
+                body: JSON.stringify({ message: prompt, code: currentCode }), // Send prompt and current code
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const mockResponse = await response.json();
+
+            debugger
+
+            let explanationHtml = mockResponse.explanation
+                .replace(/### (.*)/g, '<h3>$1</h3>')
+                .replace(/\* (.*)/g, '<li>$1</li>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            if (explanationHtml.includes('<li>')) {
+                explanationHtml = '<ul>' + explanationHtml.match(/<li>.*/g).join('') + '</ul>';
+            }
+
+            codeEditor.textContent = mockResponse.code;
+            explanationContent.innerHTML = explanationHtml;
+            livePreviewBody.innerHTML = mockResponse.previewHtml;
+            addChatMessage('ai', explanationHtml);
+
+        } catch (error) {
+            console.error("Error with AI generation:", error);
+            const errorText = "Maaf, terjadi kesalahan saat berkomunikasi dengan AI. Silakan coba lagi.";
+            showError(errorText);
+            addChatMessage('ai', errorText);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function showLoading(isLoading) {
+        loadingIndicator.style.display = isLoading ? 'flex' : 'none';
+        generateBtn.disabled = isLoading;
+        generateBtn.style.opacity = isLoading ? '0.5' : '1';
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+
+    function hideError() {
+        errorMessage.style.display = 'none';
+    }
+
 </script>

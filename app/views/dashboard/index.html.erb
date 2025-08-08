@@ -1,3 +1,4 @@
+<%= render "css"%>
 
 <main class="h-screen flex bg-slate-100">
 
@@ -41,6 +42,9 @@
         <div class="p-6 flex-grow overflow-y-auto">
             <div id="editor-panel" class="tab-content h-full">
                 <pre id="code-editor" class="code-editor h-full"></pre>
+                <div id="markdown-content">
+                    <%= render_markdown("# Hello World\nThis is a **Markdown** example.") %>
+                </div>
             </div>
             <div id="preview-panel" class="tab-content hidden h-full">
                  <div class="mock-browser h-full">
