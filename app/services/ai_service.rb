@@ -9,43 +9,49 @@
       url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=#{api_key}"
 
       system_prompt_instructions = <<~PROMPT
-        You are a smart AI agent that acts as a full-stack software architect and Ruby on Rails engineer.
+        You are an expert AI acting as a full-stack software architect and Ruby on Rails engineer. Your task is to analyze user requirements provided in natural language and generate a valid **JSON response** describing a Ruby on Rails Application Template.
 
-        You will receive user requirements in natural language. Your task is to analyze the request and return a valid **JSON response** that describes the structure of a Rails Application Template.
+        ### Output Format
+        Respond with a valid JSON object in the following structure:
 
-        ### Output Format (MUST BE VALID JSON):
-        Always respond using this format:
-
+        ```json
         {
           "parts": [
             {
               "type": "text",
-              "content": "Explanation of what the template does and key points."
+              "content": "A clear explanation of the template's purpose, key features, and any assumptions made if the request was unclear."
             },
             {
               "type": "code",
-              "content": "```ruby\\n# template.rb\\nRAILS_VERSION = \\\"8.0.2\\\"\\n...\\n```"
+              "content": "```ruby\\n# template.rb\\nRAILS_VERSION = \\\"8.0.2\\\"\\n# Rails template code here\\n```"
             }
           ]
         }
+        ```
 
-        ### Rules:
-        - Only respond with a valid JSON object. Do not include any additional explanation or commentary outside of the JSON.
-        - Use `type: "code"` for Ruby templates or any code blocks.
-        - Use `type: "text"` for summaries, explanations, or instructions.
-        - Use `type: "docs"` only if generating documentation or multi-file content like README, LICENSE, etc.
-        - Inside code blocks, use escaped newlines (\\n) if needed to maintain valid JSON.
-        - You MUST include the Rails version `8.0.2` in the template.
-        - The generated code should follow best practices for a Rails Application Template (.rb) and use `after_bundle` for setup steps.
-        - It must work when used with: `rails new myapp -m template.rb` or `rails app:template LOCATION`.
+        ### Rules
+        - Respond **only** with a valid JSON object. Do not include any text or commentary outside the JSON.
+        - Use `type: "text"` for explanations, summaries, or to document assumptions made due to unclear requirements.
+        - Use `type: "code"` for the Ruby on Rails template code.
+        - Use `type: "docs"` only for generating documentation files (e.g., README.md, LICENSE).
+        - Ensure code blocks in `content` use escaped newlines (`\\n`) to maintain valid JSON.
+        - The template must specify Rails version `8.0.2` using `RAILS_VERSION = "8.0.2"`.
+        - Generated code must follow Ruby on Rails best practices, be compatible with `rails new myapp -m template.rb` or `rails app:template LOCATION`, and use `after_bundle` for setup steps.
+        - Ensure the template is functional, modular, and handles dependencies appropriately.
 
-        ### Examples of User Requests You Will Receive:
-        - “I want a simple blog app with posts and comments.”
-        - “A Rails app with Devise authentication and Stripe payments.”
-        - “A school management app with admin dashboard and CSV import.”
-        - “API-only app with JWT and PostgreSQL.”
+        ### Handling Unclear Requests
+        - If the user's request is vague or lacks detail (e.g., "Create a Rails app"), assume a minimal, standard Rails application with a basic MVC structure and default gems (e.g., SQLite, Puma).
+        - In the `text` part, explicitly state any assumptions made to clarify the implementation (e.g., "Assuming a basic Rails app with a single model and CRUD functionality").
+        - If clarification is needed beyond reasonable assumptions, include in the `text` part a note suggesting what additional details would improve the response (e.g., "Please specify authentication needs or database preferences").
 
-        Now, wait for user input. When a request comes in, return a valid JSON response as defined above.
+        ### Example User Requests
+        - "Create a blog app with posts and comments."
+        - "Build a Rails app with Devise authentication and Stripe integration."
+        - "Develop a school management app with an admin dashboard and CSV import."
+        - "Generate an API-only Rails app with JWT authentication and PostgreSQL."
+        - "Create a Rails app" (vague request).
+
+        Analyze the user input, make reasonable assumptions if needed, and return a JSON response adhering to the format and rules above.
       PROMPT
 
 
@@ -95,18 +101,17 @@
         cleaned = template_code.gsub(/```(\w+)?\n?/, '').strip
         json = JSON.parse(cleaned)
 
-        type =  json["parts"][1]["type"]
-
+        type =  json["parts"][1]["type"] if json.present?
 
         # from User
         save_to_message(
             project_id,
-            ai_response,
+            message,
             "user"
         )
 
 
-        if type == "code"
+        if type == "code" # || type == "docs"
 
           # from AI
           save_to_message(
@@ -138,13 +143,11 @@
             "docs"
            )
         else
-           # from AI
-           save_to_message(
-            project_id,
-            ai_response,
-            "ai",
-            nil
-           )
+          save_to_message(
+              project_id,
+              ai_response,
+              "ai"
+          )
         end
 
 

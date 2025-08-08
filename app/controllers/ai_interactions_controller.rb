@@ -35,17 +35,21 @@ class AiInteractionsController < ApplicationController
     def file_templaterb
       file_template = Message.where(project_id: @project.id, type_message: "code").last
       # deugger
-      content = file_template.content.gsub(/```(\w+)?\n?/, '').strip
-      json = content.gsub(/```(\w+)?\n?/, '').strip
-      cleaned = json.gsub(/```(\w+)?\n?/, '').strip
-      json = JSON.parse(cleaned)
-      code_template = json["parts"][1]["content"]
 
-      render json: {response: code_template}
+      if file_template.present?
+        content = file_template.content.gsub(/```(\w+)?\n?/, '').strip
+        json = content.gsub(/```(\w+)?\n?/, '').strip
+        cleaned = json.gsub(/```(\w+)?\n?/, '').strip
+        json = JSON.parse(cleaned)
+        code_template = json["parts"][1]["content"]
+        render json: {response: code_template}
+      else
+        render json: {response: nil }
+      end
     end
 
     def chat_by_project
-      @messages = Message.where(type_message: nil).order(created_at: :asc)
+      @messages =  Message.where(project_id: 1) #.where("type_message IS NULL OR type_message NOT IN ('code', 'docs')").order(created_at: :asc)
       render json: @messages #.map { |m| { content: m.content, ai_response: m.ai_response, ai_role: m.ai_role, created_at: m.created_at } }
     end
 

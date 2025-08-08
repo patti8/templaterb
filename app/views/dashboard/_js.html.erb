@@ -25,7 +25,7 @@
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('chat-message', sender);
 
-        if (sender === 'User') {
+        if (sender === 'user') {
             messageDiv.textContent = messageHtml;
         } else {
             messageDiv.innerHTML = `<div class="prose prose-slate max-w-none text-slate-700">${messageHtml}</div>`;
@@ -43,7 +43,7 @@
             }
             const chatData = await response.json();
             chatData.forEach(message => {
-                addChatMessage(message.role, message.content); // Adjust based on your data structure
+                addChatMessage(message.role, `${message.role} ${message.type_message} ${message.content}`); // Adjust based on your data structure
             });
         } catch (error) {
             console.error('Error fetching chat data:', error);
@@ -146,22 +146,10 @@
             }
 
             const mockResponse = await response.json();
-
-            debugger
-
-            let explanationHtml = mockResponse.explanation
-                .replace(/### (.*)/g, '<h3>$1</h3>')
-                .replace(/\* (.*)/g, '<li>$1</li>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>');
-
-            if (explanationHtml.includes('<li>')) {
-                explanationHtml = '<ul>' + explanationHtml.match(/<li>.*/g).join('') + '</ul>';
-            }
-
             codeEditor.textContent = mockResponse.code;
-            explanationContent.innerHTML = explanationHtml;
+            // explanationContent.innerHTML = explanationHtml;
             livePreviewBody.innerHTML = mockResponse.previewHtml;
-            addChatMessage('ai', explanationHtml);
+            addChatMessage('ai', mockResponse['response']);
 
         } catch (error) {
             console.error("Error with AI generation:", error);
