@@ -1,7 +1,64 @@
-<div style="text-align: center; padding: 40px;">
-  <h1>Selamat Datang di Dashboard!</h1>
-  <p>Anda berhasil login.</p>
-  <p>Email Anda: <strong><%= current_user.email %></strong></p>
-  <br>
-  <%= button_to "Logout", destroy_user_session_path, method: :delete, style: "padding: 10px 20px; border: none; background-color: #dc3545; color: white; border-radius: 5px; cursor: pointer;" %>
-</div>
+
+<main class="h-screen flex bg-slate-100">
+
+<%= render "sidebar" %>
+
+<!-- Main Content -->
+<main class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+    <!-- Left Panel: Chat History -->
+    <div class="panel flex flex-col h-full max-h-screen">
+        <div class="p-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-comments rails-icon"></i> Riwayat Chat (Project A)</h2>
+        </div>
+        <div id="chat-history" class="flex-grow p-4 overflow-y-auto flex flex-col">
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="p-4 border-t border-slate-200">
+             <div class="relative">
+                <input type="text" id="ai-prompt" class="w-full bg-slate-100 border border-slate-300 rounded-lg pl-4 pr-12 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--rails-red)]" placeholder="Ketik permintaan Anda...">
+                <button id="generate-btn" class="absolute right-2 top-1/2 -translate-y-1/2 btn-primary !p-2 h-9 w-9 flex items-center justify-center">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="loading-indicator" class="hidden mt-2 flex items-center gap-3 text-slate-500">
+                <div class="loader"></div>
+                <span>AI sedang bekerja...</span>
+            </div>
+             <div id="error-message" class="hidden mt-2 text-red-700 bg-red-100 p-3 rounded-lg border border-red-200"></div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Tabbed Workspace -->
+    <div class="flex-grow flex flex-col panel h-full max-h-screen">
+        <!-- Tab Navigation -->
+        <div class="p-2 border-b border-slate-200 flex gap-2">
+            <button data-tab="editor" class="tab-btn active px-4 py-2 flex items-center gap-2"><i class="fab fa-dev"></i> Editor</button>
+            <button data-tab="preview" class="tab-btn px-4 py-2 flex items-center gap-2"><i class="fas fa-eye"></i> Live Preview</button>
+            <button data-tab="explanation" class="tab-btn px-4 py-2 flex items-center gap-2"><i class="fas fa-book-open"></i> Penjelasan</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6 flex-grow overflow-y-auto">
+            <div id="editor-panel" class="tab-content h-full">
+                <pre id="code-editor" class="code-editor h-full"></pre>
+            </div>
+            <div id="preview-panel" class="tab-content hidden h-full">
+                 <div class="mock-browser h-full">
+                    <div class="mock-browser-header">
+                        <div class="mock-browser-dots flex gap-1.5">
+                            <span style="background-color: #f87171;"></span><span style="background-color: #fbbd23;"></span><span style="background-color: #34d399;"></span>
+                        </div>
+                        <div class="mock-browser-url">http://localhost:3000</div>
+                    </div>
+                    <div id="live-preview-body" class="mock-browser-body"></div>
+                </div>
+            </div>
+            <div id="explanation-panel" class="tab-content hidden h-full">
+                <div id="explanation-content" class="prose prose-slate max-w-none text-slate-700"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<%= render "js" %>
+</main>

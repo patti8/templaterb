@@ -1,9 +1,17 @@
 Rails.application.routes.draw do
+
+  get 'ai_interactions/chat', to: 'ai_interactions#chat', as: :ai_chat
+  post 'ai_interactions/project/:project_id', to: 'ai_interactions#create_chat_by_project', as: :ai_chat_project
+  get 'ai_interactions/project/:project_id', to: 'ai_interactions#chat_by_project', as: :ai_chat_by_project
+
+
+  get 'ai_interactions/chat_history', to: 'ai_interactions#chat_history', as: :ai_chat_history
+
+
   root 'dashboard#index'
   get "dashboard/index"
-  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
+  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check

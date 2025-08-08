@@ -1,0 +1,57 @@
+<%# File: app/views/devise/registrations/new.html.erb %>
+
+<div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+
+    <div>
+      <div class="flex justify-center">
+        <i class="fas fa-gem text-6xl" style="color: #D30001;"></i>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        Buat akun baru
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Atau
+        <%= link_to "masuk ke akun Anda", new_session_path(resource_name), class: "font-medium text-red-600 hover:text-red-500" %>
+      </p>
+    </div>
+
+    <div class="bg-white p-8 shadow-xl rounded-2xl">
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+
+        <%# Menampilkan notifikasi error yang sudah di-style %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="rounded-md -space-y-px">
+          <div>
+            <%= f.label :email, class: "sr-only" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Alamat email" %>
+          </div>
+
+          <div>
+            <%= f.label :password, class: "sr-only" %>
+            <% if @minimum_password_length %>
+              <%= f.password_field :password, autocomplete: "new-password", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Password (#{@minimum_password_length} karakter minimum)" %>
+            <% else %>
+              <%= f.password_field :password, autocomplete: "new-password", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Password" %>
+            <% end %>
+          </div>
+
+          <div>
+            <%= f.label :password_confirmation, class: "sr-only" %>
+            <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Konfirmasi password" %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.submit "Sign up", class: "group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="text-center text-sm text-gray-500">
+        <%= render "devise/shared/links" %>
+    </div>
+
+  </div>
+</div>

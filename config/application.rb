@@ -8,6 +8,10 @@ Bundler.require(*Rails.groups)
 
 module Templaterb
   class Application < Rails::Application
+
+    config.hosts << "localhost3011.2mate.ch"
+
+    config.x.gemini_api_key = ENV['GEMINI_API_KEY']
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 

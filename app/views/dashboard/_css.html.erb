@@ -1,0 +1,99 @@
+<style>
+:root {
+    --rails-red: #D30001;
+    --light-bg: #f8fafc;
+    --panel-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --code-bg: #f1f5f9;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+}
+.panel {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+}
+.code-editor {
+    font-family: 'Fira Code', monospace;
+    background-color: var(--code-bg);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    height: 100%;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #334155;
+    border: 1px solid var(--border-color);
+}
+.btn-primary {
+    background-color: var(--rails-red);
+    color: white;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.loader { border: 4px solid var(--border-color); border-top: 4px solid var(--rails-red); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.rails-icon { color: var(--rails-red); }
+
+.mock-browser {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px -2px rgb(0 0 0 / 0.05);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+}
+.mock-browser-header { background: #e2e8f0; padding: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.mock-browser-dots span { display: block; width: 12px; height: 12px; border-radius: 50%; }
+.mock-browser-url { flex-grow: 1; background: white; border-radius: 0.25rem; padding: 0.25rem 0.75rem; font-family: 'Fira Code', monospace; font-size: 0.8rem; color: #475569; }
+.mock-browser-body { flex-grow: 1; background: white; padding: 1.5rem; overflow-y: auto; }
+
+.tab-btn {
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+.tab-btn.active {
+    color: var(--rails-red);
+    border-bottom-color: var(--rails-red);
+    font-weight: 600;
+}
+
+/* Chat History Styles */
+.chat-message {
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+    max-width: 90%;
+}
+.chat-message.user {
+    background-color: var(--rails-red);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0.25rem;
+}
+.chat-message.ai {
+    background-color: #f1f5f9; /* slate-100 */
+    color: var(--text-dark);
+    align-self: flex-start;
+    border-bottom-left-radius: 0.25rem;
+}
+.chat-message .prose {
+    max-width: none;
+}
+.chat-message .prose code {
+    background-color: #e2e8f0; color: var(--rails-red); padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: 'Fira Code', monospace; font-weight: 500;
+}
+
+</style>

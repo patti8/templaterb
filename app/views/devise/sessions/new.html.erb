@@ -1,0 +1,72 @@
+<%# File: app/views/devise/sessions/new.html.erb %>
+
+<div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+
+    <div>
+      <%# Ganti dengan logo aplikasi Anda jika ada %>
+      <div class="flex justify-center">
+        <i class="fas fa-gem text-6xl" style="color: #D30001;"></i>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        Masuk ke akun Anda
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Atau
+        <%= link_to "mulai buat akun baru", new_registration_path(resource_name), class: "font-medium text-red-600 hover:text-red-500" %>
+      </p>
+    </div>
+
+    <div class="bg-white p-8 shadow-xl rounded-2xl">
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+
+        <%# Menampilkan notifikasi error jika ada %>
+        <% if alert %>
+          <div class="bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fa fa-exclamation-circle text-red-400"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700"><%= alert %></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div>
+            <%= f.label :email, class: "sr-only" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Alamat email" %>
+          </div>
+          <div>
+            <%= f.label :password, class: "sr-only" %>
+            <%= f.password_field :password, autocomplete: "current-password", class: "appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm", placeholder: "Password" %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <% if devise_mapping.rememberable? %>
+            <div class="flex items-center">
+              <%= f.check_box :remember_me, class: "h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" %>
+              <%= f.label :remember_me, class: "ml-2 block text-sm text-gray-900" %>
+            </div>
+          <% end %>
+
+          <div class="text-sm">
+            <%= link_to "Lupa password?", new_password_path(resource_name), class: "font-medium text-red-600 hover:text-red-500" %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.submit "Log in", class: "group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="text-center text-sm text-gray-500">
+        <%= render "devise/shared/links" %>
+    </div>
+
+  </div>
+</div>
