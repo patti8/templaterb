@@ -66,7 +66,7 @@ gem "devise", "~> 4.9"
 gem 'omniauth-google-oauth2'
 gem "stripe", "~> 9.0"
 gem "dotenv-rails", groups: [:development, :test]
-gem "foreman", "~> 0.87.2", group: :development
+gem "foreman", "~> 0.90.0", group: :development
 gem 'httparty' # HTTP client for REST API requests to Gemini AI
 
 gem "redcarpet", "~> 3.6"
